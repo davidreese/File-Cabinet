@@ -13,6 +13,12 @@ else:
 
 directories.sort()
 
+if len(sys.argv) >= 3:
+    jumpto = sys.argv[2]
+else:
+    jumpto = None
+
+
 def handle(path, completion=None):
     try:
         response = input(f"Delete \"{path}\"?\n").lower()
@@ -55,6 +61,9 @@ def handle(path, completion=None):
         handle(path)
 
 for path in directories:
+    if jumpto != None:
+        if path.split('/')[-1] < jumpto:
+            continue
     if basepath == None:
         handle(path)
     else:
