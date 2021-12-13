@@ -3,6 +3,7 @@ import sys
 from PIL import Image
 import subprocess
 import signal
+import shutil
 
 if len(sys.argv) >= 2:
     basepath = sys.argv[1]
@@ -19,14 +20,21 @@ else:
     jumpto = None
 
 
-def handle(path, completion=None):
+def handle(path, completion = None):
     try:
-        response = input(f"Delete \"{path}\"?\n").lower()
+        response = input(f"Delete \"{path}\"? (y/N) \n").lower()
         if response == "y":
-            print("Deleting...\n")
-            os.chmod(path, 0o777)
-            os.remove(path)
-            print(f"Deleted \"{path}\"\n")
+            name, extension = os.path.splitext(path)
+
+            print("\nDeleting...")
+
+            if extension == "":
+                shutil.rmtree(path)
+            else:
+                # os.chmod(path, 0o777)
+                os.remove(path)
+
+            print(f"Deleted \"{path}\" 🗑 \n")
             if completion != None:
                 completion()
         elif response == "v":
@@ -41,10 +49,13 @@ def handle(path, completion=None):
                         # img.hide()
                     handle(path, c)
             elif extension.lower() == ".pdf":
-                os.chmod(path, 0o777)
+                # os.chmod(path, 0o777)
                 os.system(path)
                 # subprocess.Popen([path], shell=True)
                 # plot = subprocess.Popen("evince '%s'" % path, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
+                handle(path)
+            elif extension == "":
+                print(f"Contents of the folder: {os.listdir(path)} \n");
                 handle(path)
             else:
                 print("Can't show this file.\n")
@@ -52,13 +63,23 @@ def handle(path, completion=None):
                 #     for line in infile:
                 #         outfile.write(line)
                 handle(path)
+        elif response == "b":
+            print("Skipped file. ✅ \n")
+            if completion != None:
+                completion()
         else:
-            print("Skipped file.\n")
+            print("Skipped file. ✅ \n")
             if completion != None:
                 completion()
     except PermissionError:
         print(f"A PermissionError occured.\n")
         handle(path)
+    except Image.UnidentifiedImageError:
+        print(f"A PIL.UnidentifiedImageError occured.\n")
+        handle(path)
+    # except:
+    #     print("An unknown error occured.\n")
+    #     handle(path)
 
 for path in directories:
     if jumpto != None:
